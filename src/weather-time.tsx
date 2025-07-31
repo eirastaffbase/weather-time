@@ -126,6 +126,7 @@ function formatDateTime(dt: DateTime): string {
  */
 export interface WeatherTimeProps extends BlockAttributes {
   city: string; // The city for which to display weather/time
+  apikey: string; // WeatherAPI key
   allowcityoverride: boolean;
   mobileview: boolean;
   usenewimages: boolean;
@@ -142,9 +143,7 @@ export interface WeatherTimeProps extends BlockAttributes {
 export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
   // A ref to the container div, if needed for future usage
   const containerRef = useRef<HTMLDivElement>(null);
-
   // Destructure the relevant props
-  const { city, allowcityoverride, mobileview, usenewimages } = props;
 
   /**
    * Decide if we're in "mobile" mode based on prop.
@@ -216,16 +215,15 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
    */
   const fetchWeatherData = async () => {
     try {
-      // WeatherAPI key
-      const apiKey = "2316f440769c440d92051647240512";
-      if (!apiKey) {
-        console.error("Weather API key is not set.");
-        return null;
-      }
+      // Use the provided apikey prop instead of hardcoding
+      if (!apikey || apikey.trim() === '') {
+      console.error("Weather API key is not provided in configuration.", apikey);
+      throw new Error("API key is required");
+    }
 
       // Build the URL
       const response = await fetch(
-        `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(
+        `https://api.weatherapi.com/v1/current.json?key=${apikey}&q=${encodeURIComponent(
           displayCity
         )}`
       );
