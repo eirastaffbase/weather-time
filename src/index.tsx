@@ -25,6 +25,7 @@ import pkg from '../package.json'
  */
 const widgetAttributes: string[] = [
   'city',
+  'apikey',
   'allowcityoverride',
   'mobileview',
   'usenewimages',

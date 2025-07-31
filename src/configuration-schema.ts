@@ -25,6 +25,11 @@ export const configurationSchema: JSONSchema7 = {
       title: 'City',
       default: '{{user.profile.location}}',
     },
+    apikey: {
+      type: 'string',
+      title: 'WeatherAPI Key',
+      default: '',
+    },
     allowcityoverride: {
       type: "boolean",
       title: "Allow city override?",
@@ -52,6 +57,9 @@ export const configurationSchema: JSONSchema7 = {
 export const uiSchema: UiSchema = {
   city: {
     'ui:help': 'Enter the city name, or use {{user.profile.location}} to pull from the user.',
+  },
+  apikey: {
+    'ui:help': 'Get your API key from https://www.weatherapi.com/',
   },
   allowcityoverride: {
     "ui:help":
