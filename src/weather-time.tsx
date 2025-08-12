@@ -88,9 +88,9 @@ function getIconFilename(code: number, timeOfDay: "day" | "night"): string {
 
 /**
  * Format a Luxon DateTime object into a short string, e.g.:
- * "Nov 26th, 9:05am"
+ * "Nov 26th, 9:05am" or "Nov 26, 9:05am" (depending on showSuffix)
  */
-function formatDateTime(dt: DateTime): string {
+function formatDateTime(dt: DateTime, showSuffix: boolean = true): string {
   // Example: dt.toFormat("LLL") => short month name like "Nov"
   const monthShort = dt.toFormat("LLL");
   // The numeric day of the month, e.g. 26
@@ -112,7 +112,7 @@ function formatDateTime(dt: DateTime): string {
     if (n % 10 === 3 && n % 100 !== 13) return "rd";
     return "th";
   }
-  const suffix = getOrdinalSuffix(day);
+  const suffix = showSuffix ? getOrdinalSuffix(day) : "";
 
   // Pad minutes to 2 digits (e.g., "05" if it's 5 minutes after the hour)
   const minStr = minutes.toString().padStart(2, "0");
@@ -126,9 +126,11 @@ function formatDateTime(dt: DateTime): string {
  */
 export interface WeatherTimeProps extends BlockAttributes {
   city: string; // The city for which to display weather/time
+  apikey: string; // WeatherAPI key
   allowcityoverride: boolean;
   mobileview: boolean;
   usenewimages: boolean;
+  showordinalsuffix: boolean; // Whether to show ordinal suffixes in the date
 }
 
 /**
@@ -140,12 +142,27 @@ export interface WeatherTimeProps extends BlockAttributes {
  * 4) (Optional) allow user to override city if allowcityoverride is true.
  */
 export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
+  console.log("WeatherTime props received:", props);
+  console.log("WeatherTime props keys:", Object.keys(props));
   // A ref to the container div, if needed for future usage
   const containerRef = useRef<HTMLDivElement>(null);
-
   // Destructure the relevant props
-  const { city, allowcityoverride, mobileview, usenewimages } = props;
-
+  const { 
+    city = '', 
+    apikey = '', 
+    allowcityoverride = true, 
+    mobileview = false, 
+    usenewimages = false,
+    showordinalsuffix = true
+  } = props;
+  console.log("After destructuring:", {
+    city,
+    apikey: apikey ? 'PROVIDED' : 'MISSING',
+    allowcityoverride,
+    mobileview,
+    usenewimages,
+    showordinalsuffix
+  });
   /**
    * Decide if we're in "mobile" mode based on prop.
    * The prop can be "true" (string), "false" (string), or a boolean.
@@ -162,6 +179,16 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
       : allowcityoverride === "false"
       ? false
       : Boolean(allowcityoverride);
+
+  /**
+   * Decide if ordinal suffix should be shown similarly.
+   */
+  const shouldShowOrdinalSuffix =
+    showordinalsuffix === "true"
+      ? true
+      : showordinalsuffix === "false"
+      ? false
+      : Boolean(showordinalsuffix);
 
   // Various pieces of state for weather info
   const [condition, setCondition] = useState<string>("Loading...");
@@ -216,16 +243,15 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
    */
   const fetchWeatherData = async () => {
     try {
-      // WeatherAPI key
-      const apiKey = "2316f440769c440d92051647240512";
-      if (!apiKey) {
-        console.error("Weather API key is not set.");
-        return null;
-      }
+      // Use the provided apikey prop instead of hardcoding
+      if (!apikey || apikey.trim() === '') {
+      console.error("Weather API key is not provided in configuration.", apikey);
+      throw new Error("API key is required");
+    }
 
       // Build the URL
       const response = await fetch(
-        `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(
+        `https://api.weatherapi.com/v1/current.json?key=${apikey}&q=${encodeURIComponent(
           displayCity
         )}`
       );
@@ -356,7 +382,7 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
   /**
    * Format the localTime if available, or show a loading string
    */
-  const dateTimeString = localTime ? formatDateTime(localTime) : "Loading time...";
+  const dateTimeString = localTime ? formatDateTime(localTime, shouldShowOrdinalSuffix) : "Loading time...";
 
   /**
    * Container style - different if in mobile vs. desktop layout

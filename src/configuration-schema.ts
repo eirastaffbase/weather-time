@@ -25,6 +25,11 @@ export const configurationSchema: JSONSchema7 = {
       title: 'City',
       default: '{{user.profile.location}}',
     },
+    apikey: {
+      type: 'string',
+      title: 'WeatherAPI Key',
+      default: '',
+    },
     allowcityoverride: {
       type: "boolean",
       title: "Allow city override?",
@@ -41,6 +46,12 @@ export const configurationSchema: JSONSchema7 = {
       default: false,
       description: "Use the new weather icons instead of the old ones.",
     },
+    showordinalsuffix: {
+      type: "boolean",
+      title: "Show ordinal suffix",
+      default: true,
+      description: "If checked, the date will show the ordinal suffix (e.g. '1st', '2nd', '3rd', '4th').",
+    },
   },
   required: ['city'],
 };
@@ -53,6 +64,9 @@ export const uiSchema: UiSchema = {
   city: {
     'ui:help': 'Enter the city name, or use {{user.profile.location}} to pull from the user.',
   },
+  apikey: {
+    'ui:help': 'Get your API key from https://www.weatherapi.com/',
+  },
   allowcityoverride: {
     "ui:help":
       "If checked, a small button in the widget will let the user override the city.",
@@ -64,6 +78,10 @@ export const uiSchema: UiSchema = {
   usenewimages: {
     "ui:help":
       "Use the new weather icons instead of the old ones. This will be the default in the future.",
+  },
+  showordinalsuffix: {
+    "ui:help":
+      "If checked, the date will show the ordinal suffix (e.g. '1st', '2nd', '3rd', '4th').",
   },
 
 };
