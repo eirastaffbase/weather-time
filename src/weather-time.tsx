@@ -129,6 +129,7 @@ export interface WeatherTimeProps extends BlockAttributes {
   allowcityoverride: boolean;
   mobileview: boolean;
   usenewimages: boolean;
+  userealisticimages: boolean;
 }
 
 /**
@@ -144,7 +145,7 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Destructure the relevant props
-  const { city, allowcityoverride, mobileview, usenewimages } = props;
+  const { city, allowcityoverride, mobileview, usenewimages, userealisticimages } = props;
 
   /**
    * Decide if we're in "mobile" mode based on prop.
@@ -190,18 +191,30 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
   const defaultTemperatureC = 27;
   const defaultTemperatureF = (27 * 9) / 5 + 32;
 
-  // For icons - Define both potential paths
+  // For icons - Define all potential paths
   const GITHUB_WEATHER_PATH =
     "https://eirastaffbase.github.io/weather-time/resources/img";
   const WIDGET_IMAGES_PATH =
     "https://eirastaffbase.github.io/widget-images/weather-time";
+  const REALISTIC_SET_PATH =
+    "https://eirastaffbase.github.io/widget-images/realistic-set";
 
   const useNewImagesParsed = usenewimages === true || usenewimages === "true";
+  const useRealisticImagesParsed = userealisticimages === true || userealisticimages === "true";
 
-  const imageBasePath = useNewImagesParsed ? WIDGET_IMAGES_PATH : GITHUB_WEATHER_PATH;
+  const imageBasePath = useRealisticImagesParsed
+    ? REALISTIC_SET_PATH
+    : useNewImagesParsed
+    ? WIDGET_IMAGES_PATH
+    : GITHUB_WEATHER_PATH;
+
+  const imageExt = useRealisticImagesParsed ? ".png" : ".svg";
+
+  // Sizing: realistic set uses default (non-new) sizing
+  const useNewImagesForSizing = useNewImagesParsed && !useRealisticImagesParsed;
 
   // Set the default fallback icon using the selected base path
-  const fallbackGHDefault = `${imageBasePath}/default.svg`;
+  const fallbackGHDefault = `${imageBasePath}/default${imageExt}`;
   // Decide which city name to actually use (override or prop)
   const displayCity = overrideCity || city || defaultCity;
 
@@ -248,7 +261,7 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
         // Figure out the correct weather icon to show
         const weatherCode = data.current.condition.code || 1000;
         const timeOfDay = data.current.is_day === 1 ? "day" : "night";
-        const filename = getIconFilename(weatherCode, timeOfDay);
+        const filename = getIconFilename(weatherCode, timeOfDay).replace(".svg", imageExt);
         // Use the dynamically selected imageBasePath
         setIconUrl(`${imageBasePath}/${filename}`);
 
@@ -371,9 +384,9 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
     textAlign: isMobileView ? "right" : "left",
   };
 
-  // Determine the image width based on useNewImagesParsed
-  const imageWidthMobile = useNewImagesParsed ? "130px" : "105px";
-  const imageWidthDesktop = useNewImagesParsed ? "230px" : "165px";
+  // Determine the image width based on useNewImagesForSizing
+  const imageWidthMobile = useNewImagesForSizing ? "130px" : "105px";
+  const imageWidthDesktop = useNewImagesForSizing ? "230px" : "165px";
 
   return (
     <div ref={containerRef} style={containerStyle}>
@@ -416,7 +429,7 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
           {iconUrl && (
             <div
               style={{ 
-                marginBottom: useNewImagesParsed ? "0px" : "10px", 
+                marginBottom: useNewImagesForSizing ? "0px" : "10px",
                 cursor: "pointer",
               }}
               onClick={handleRefresh}
@@ -454,7 +467,7 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
                 cursor: "pointer",
                 fontSize: "26px",
                 fontWeight: "500",
-                margin: useNewImagesParsed ? "0px 33px 0px 0px" : "0px 15px 0px 0px",
+                margin: useNewImagesForSizing ? "0px 33px 0px 0px" : "0px 15px 0px 0px",
               }}
             >
               {Math.round(temperature)}°{isFahrenheit ? "F" : "C"}
@@ -471,7 +484,7 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
       {!isMobileView && (
         <>
           {/* Left side: Temperature & date/time */}
-          <div style={{ marginBottom: useNewImagesParsed ? "-15px" : "0px" }}>
+          <div style={{ marginBottom: useNewImagesForSizing ? "-15px" : "0px" }}>
             {/* Temperature */}
             {temperature !== null && (
               <p
@@ -511,8 +524,8 @@ export const WeatherTime = (props: WeatherTimeProps): ReactElement => {
                 onClick={handleRefresh}
                 alt="Weather Icon"
                 style={{ width: imageWidthDesktop, 
-                  marginTop: useNewImagesParsed ? "-65px" : "-60px",
-                  marginLeft: useNewImagesParsed ? "-10px" : "-5px",
+                  marginTop: useNewImagesForSizing ? "-65px" : "-60px",
+                  marginLeft: useNewImagesForSizing ? "-10px" : "-5px",
                               }}
                 onError={(e) => {
                   const imgEl = e.currentTarget as HTMLImageElement;

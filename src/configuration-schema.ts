@@ -41,6 +41,12 @@ export const configurationSchema: JSONSchema7 = {
       default: false,
       description: "Use the new weather icons instead of the old ones.",
     },
+    userealisticimages: {
+      type: "boolean",
+      title: "Use realistic images?",
+      default: false,
+      description: "Use the realistic photo-style weather icons.",
+    },
   },
   required: ['city'],
 };
@@ -64,6 +70,10 @@ export const uiSchema: UiSchema = {
   usenewimages: {
     "ui:help":
       "Use the new weather icons instead of the old ones. This will be the default in the future.",
+  },
+  userealisticimages: {
+    "ui:help":
+      "Use the realistic photo-style weather icons. Uses default image sizing.",
   },
 
 };
